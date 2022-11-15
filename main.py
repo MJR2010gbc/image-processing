@@ -1,7 +1,7 @@
 import numpy as np
 import skimage
 import matplotlib.pyplot as plt
-from FinalProject import ImageProcessing 
+from ImageProcessing import ImageProcessing 
 
 
 np.abs(-2)
@@ -11,10 +11,10 @@ colors = ['Red', 'Green', 'Blue']
 
 print(im.magnitude_spectrum[0])
 print(im.magnitude_spectrum[0].shape)
-for i, image in enumerate(im.magnitude_spectrum):
-    plt.imshow(image, cmap='gray')
-    plt.title(f'Image {colors[i]}')
-    plt.show()
+im.alex_edge_detection()
+plt.imshow(im.filtered_image)
+plt.title(f'Image ')
+plt.show()
 
 
 # plt.subplot(121)
