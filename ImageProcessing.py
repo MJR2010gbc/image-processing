@@ -129,8 +129,6 @@ class ImageProcessing:
         center = [self.crow, self.ccol]
         x, y = np.ogrid[:self.height, :self.width]
         #  Mask area is a matrix of boolean, defining to which frequencies the filter will be applied to
-        print(self.width)
-        print(radius)
         if direction:
             #               This is the formula of a circle         this one means everything OUTSIDE the circle
             mask_area = (x - center[0]) ** 2 + (y - center[1]) ** 2 > radius*radius
@@ -171,8 +169,17 @@ class ImageProcessing:
             self.filtered_magnitude_spectrum_gray = 20 * np.log(magnitude)
             self.filtered_image_gray = self.recompose_image(self.filtered_image_frequency_gray)
 
+    # Custom filter to manually tune the variables:
+    #  - channels -> which channels are involved
+    #  - radius -> percentage of image width, radius of the mask used to apply the filter
+    #  - intensity -> percentage of dampening intensity on the modified values, 
+    #                 0% values are not modified so the mask will multiply by 1,
+    #                 100% values are multiplied by 0
+    #  - direction -> 0 HPF, 1 LPF 
     def custom_filter(self, channels, radius, intensity, direction):
+        # convert percentage in intensity multiplication factor
         intensity = (100-intensity)/100
+        #  convert percentage in actual lenght of the radius
         radius = (self.width/2)*(radius/100)
         mask = self.define_circular_mask(radius, intensity, direction)
         if len(channels):
@@ -257,109 +264,3 @@ class ImageProcessing:
             self.get_image_back(color_channels)
             cv2.imwrite('noise_gray.jpeg', self.filtered_image_gray)
             cv2.imwrite('noise_freq_gray.jpeg', self.filtered_magnitude_spectrum_gray)
-        
-        
-
-    
-    
-    # # Noise Filtering using Low Pass Filter
-    # def alex_noise_filtering(self):
-    #     # Circular HPF mask, center circle is 0, remaining all ones
-    #     mask = np.ones((self.row_number, self.cols, 2), np.float64)
-    #     r = 480
-    #     center = [self.crow, self.ccol]
-    #     x, y = np.ogrid[:self.row_number, :self.cols]
-    #     mask_area = (x - center[0]) ** 2 + (y - center[1]) ** 2 > r*r
-    #     mask[mask_area] = 0.0000000000000000000001
-       
-    #     # apply mask and inverse DFT
-    #     for i, color_frequency in enumerate(self.image_frequency_RGB): 
-    #         self.filtered_image_frequency_RGB.append(color_frequency * mask)
-    #         magnitude = cv2.magnitude(self.filtered_image_frequency_RGB[i][:, :, 0], self.filtered_image_frequency_RGB[i][:, :, 1])
-    #         self.filtered_magnitude_spectrum_RGB.append(np.log(magnitude))
-            
-    #     self.recompose_image()
-
-
-        
-    # # Edge Detection with High Pass Filter
-    # def edge_detection(self):
-    #     dft = cv2.dft(np.float32(self.image_gray), flags=cv2.DFT_COMPLEX_OUTPUT)
-    #     dft_shift = np.fft.fftshift(dft)
-
-    #     magnitude_spectrum = 20 * np.log(cv2.magnitude(dft_shift[:, :, 0], dft_shift[:, :, 1]))
-        
-    #     rows, cols = self.image_gray.shape
-    #     crow, ccol = int(rows / 2), int(cols / 2)  # center
-
-    #     # Circular HPF mask, center circle is 0, remaining all ones
-
-    #     mask = np.ones((rows, cols, 2), np.uint8)
-    #     r = 80
-    #     center = [crow, ccol]
-    #     x, y = np.ogrid[:rows, :cols]
-    #     mask_area = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= r*r
-    #     mask[mask_area] = 0
-    #     print(dft_shift)
-    #     # apply mask and inverse DFT
-    #     fshift = dft_shift * mask
-
-    #     fshift_mask_mag = 2000 * np.log(cv2.magnitude(fshift[:, :, 0], fshift[:, :, 1]))
-
-    #     f_ishift = np.fft.ifftshift(fshift)
-    #     img_back = cv2.idft(f_ishift)
-    #     img_back = cv2.magnitude(img_back[:, :, 0], img_back[:, :, 1])
-
-    #     plt.figure(figsize=(20, 20))
-    #     plt.subplot(2, 2, 1), plt.imshow(self.image, cmap='gray')
-    #     plt.title('Input Image'), plt.xticks([]), plt.yticks([])
-    #     plt.subplot(2, 2, 2), plt.imshow(magnitude_spectrum, cmap='gray')
-    #     plt.title('After FFT'), plt.xticks([]), plt.yticks([])
-    #     plt.subplot(2, 2, 3), plt.imshow(fshift_mask_mag, cmap='gray')
-    #     plt.title('FFT + Mask'), plt.xticks([]), plt.yticks([])
-    #     plt.subplot(2, 2, 4), plt.imshow(img_back, cmap='gray')
-    #     plt.title('After FFT Inverse'), plt.xticks([]), plt.yticks([])
-    #     plt.show()
-    
-    # # Noise Filtering using Low Pass Filter
-    # def noise_filtering(self):
-    #     img = cv2.imread(self.image_path, 0)
-    #     dft = cv2.dft(np.float32(img), flags=cv2.DFT_COMPLEX_OUTPUT)
-    #     dft_shift = np.fft.fftshift(dft)
-
-    #     magnitude_spectrum = 20 * np.log(cv2.magnitude(dft_shift[:, :, 0], dft_shift[:, :, 1]))
-        
-    #     rows, cols = img.shape
-    #     crow, ccol = int(rows / 2), int(cols / 2)  # center
-
-    #     # Circular LPF mask, center circle is 1, remaining all zeros
-    #     rows, cols = img.shape
-    #     crow, ccol = int(rows / 2), int(cols / 2)
-
-    #     mask = np.zeros((rows, cols, 2), np.uint8)
-    #     r = 70
-    #     center = [crow, ccol]
-    #     x, y = np.ogrid[:rows, :cols]
-    #     mask_area = (x - center[0]) ** 2 + (y - center[1]) ** 2 <= r*r
-    #     mask[mask_area] = 1
-
-    #     # apply mask and inverse DFT
-    #     fshift = dft_shift * mask
-
-    #     step1 = cv2.magnitude(fshift[:, :, 0], fshift[:, :, 1])
-    #     fshift_mask_mag = 2000 * np.log(step1)
-
-    #     f_ishift = np.fft.ifftshift(fshift)
-    #     img_back = cv2.idft(f_ishift)
-    #     img_back = cv2.magnitude(img_back[:, :, 0], img_back[:, :, 1])
-
-    #     plt.figure(figsize=(20, 20))
-    #     plt.subplot(2, 2, 1), plt.imshow(img, cmap='gray')
-    #     plt.title('Input Image'), plt.xticks([]), plt.yticks([])
-    #     plt.subplot(2, 2, 2), plt.imshow(magnitude_spectrum, cmap='gray')
-    #     plt.title('After FFT'), plt.xticks([]), plt.yticks([])
-    #     plt.subplot(2, 2, 3), plt.imshow(fshift_mask_mag, cmap='gray')
-    #     plt.title('FFT + Mask'), plt.xticks([]), plt.yticks([])
-    #     plt.subplot(2, 2, 4), plt.imshow(img_back, cmap='gray')
-    #     plt.title('After FFT Inverse'), plt.xticks([]), plt.yticks([])
-    #     plt.show()
