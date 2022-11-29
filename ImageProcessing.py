@@ -15,8 +15,8 @@ class ImageProcessing:
     image_gray : np.ndarray
     
     # image dimensions
-    row_number : int
-    column_number : int 
+    height : int
+    width : int 
     
     # center row and col of the image (rounded)
     crow : int 
@@ -60,14 +60,14 @@ class ImageProcessing:
         
         # Converting the image colors from BGR to RGB
         self.image = cv2.cvtColor(image_pre, cv2.COLOR_BGR2RGB)
-        self.filtered_image_RGB = cv2.imread(image_path, cv2.IMREAD_COLOR)
+        self.filtered_image_RGB = cv2.cvtColor(image_pre, cv2.COLOR_BGR2RGB)
         
         # Reading the grayscale version
         self.image_gray = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
         self.filtered_image_gray = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
         
-        self.row_number, self.column_number = self.image.shape[0:2]
-        self.crow, self.ccol = int(self.row_number / 2), int(self.column_number / 2)  # center
+        self.height, self.width = self.image.shape[0:2]
+        self.crow, self.ccol = int(self.height / 2), int(self.width / 2)  # center
         
         # Declaring the list of frequency domain and magnitude spectrum, it will contain the frequency divided by colors
         # self.image_frequency_RGB[0] will contain the Red component
@@ -96,7 +96,8 @@ class ImageProcessing:
             # get the magnitude of the vector defined by real and imaginary part, magnitude is a 2D matrix of shape (height, width)
             magnitude = cv2.magnitude(self.image_frequency_RGB[i][:, :, 0], self.image_frequency_RGB[i][:, :, 1])
             # apply log to have a discernible spectrum
-            self.magnitude_spectrum_RGB.append(np.log(magnitude))
+            self.magnitude_spectrum_RGB.append(20 * np.log(magnitude))
+            self.filtered_magnitude_spectrum_RGB.append(20 * np.log(magnitude))
 
         # get grayscale frequency and generate magnitude spectrum
         pre_shift_image_frequency_gray = cv2.dft(np.float32(self.image_gray), flags=cv2.DFT_COMPLEX_OUTPUT)
@@ -112,7 +113,8 @@ class ImageProcessing:
         # get the magnitude of the vector defined by real and imaginary part, magnitude is a 2D matrix of shape (height, width)
         magnitude = cv2.magnitude(self.image_frequency_gray[:, :, 0], self.image_frequency_gray[:, :, 1])
         # apply log to have a discernible spectrum
-        self.magnitude_spectrum_gray = np.log(magnitude)
+        self.magnitude_spectrum_gray = 20 * np.log(magnitude)
+        self.filtered_magnitude_spectrum_gray = 20 * np.log(magnitude)
 #    
 #   Utility methods
 #    
@@ -123,10 +125,12 @@ class ImageProcessing:
     #             1: all elements inside the circular area are 1s(lpf) 
     def define_circular_mask(self, radius: float, intensity: float, direction: int):
         # Circular HPF mask, center circle is 0, remaining all ones
-        mask = np.ones((self.row_number, self.column_number, 2), np.float64)
+        mask = np.ones((self.height, self.width, 2), np.float64)
         center = [self.crow, self.ccol]
-        x, y = np.ogrid[:self.row_number, :self.column_number]
+        x, y = np.ogrid[:self.height, :self.width]
         #  Mask area is a matrix of boolean, defining to which frequencies the filter will be applied to
+        print(self.width)
+        print(radius)
         if direction:
             #               This is the formula of a circle         this one means everything OUTSIDE the circle
             mask_area = (x - center[0]) ** 2 + (y - center[1]) ** 2 > radius*radius
@@ -156,9 +160,10 @@ class ImageProcessing:
     def get_image_back(self, color_channels):
         if(len(color_channels)):
         # apply mask and inverse DFT on each of the selected colors
+            self.filtered_magnitude_spectrum_RGB = []
             for channel in color_channels: 
                 magnitude = cv2.magnitude(self.filtered_image_frequency_RGB[channel][:, :, 0], self.filtered_image_frequency_RGB[channel][:, :, 1])
-                self.filtered_magnitude_spectrum_RGB.append(200 * np.log(magnitude))
+                self.filtered_magnitude_spectrum_RGB.append(20 * np.log(magnitude))
                 self.filtered_image_RGB[:, :, channel] = self.recompose_image(self.filtered_image_frequency_RGB[channel])
                 
         else:
@@ -166,18 +171,40 @@ class ImageProcessing:
             self.filtered_magnitude_spectrum_gray = 20 * np.log(magnitude)
             self.filtered_image_gray = self.recompose_image(self.filtered_image_frequency_gray)
 
+    def custom_filter(self, channels, radius, intensity, direction):
+        intensity = (100-intensity)/100
+        radius = (self.width/2)*(radius/100)
+        mask = self.define_circular_mask(radius, intensity, direction)
+        if len(channels):
+            self.filtered_image_frequency_RGB = []
+            for channel in channels: 
+                self.filtered_image_frequency_RGB.append(self.image_frequency_RGB[channel] * mask)
+            self.get_image_back(channels)
+            cv2.imwrite('sharp_RGB.jpeg', cv2.cvtColor(self.filtered_image_RGB, cv2.COLOR_RGB2BGR))
+            cv2.imwrite('sharp_freq_RGB.jpeg', self.filtered_magnitude_spectrum_RGB[0])
+        else:
+            self.filtered_image_frequency_gray = self.image_frequency_gray * mask
+            self.get_image_back(channels)
+            cv2.imwrite('sharp_gray.jpeg', self.filtered_image_gray)
+            cv2.imwrite('sharp_freq_gray.jpeg', self.filtered_magnitude_spectrum_gray)
+            cv2.imwrite('image4_freq_gray.jpeg',self.magnitude_spectrum_gray)
 
     # Sharpening with High Pass Filter
     def sharpening(self, color_channels):
         # Circular HPF mask, center circle is 0, remaining all ones
-        mask = self.define_circular_mask(self.column_number/20, .5, 0)
+        mask = self.define_circular_mask(self.width/20, .5, 0)
         if len(color_channels):
             for channel in color_channels: 
                 self.filtered_image_frequency_RGB.append(self.image_frequency_RGB[channel] * mask)
+            self.get_image_back(color_channels)
+            cv2.imwrite('sharp_RGB.jpeg', cv2.cvtColor(self.filtered_image_RGB, cv2.COLOR_RGB2BGR))
+            cv2.imwrite('sharp_freq_RGB.jpeg', self.filtered_magnitude_spectrum_RGB[0])
         else:
             self.filtered_image_frequency_gray = self.image_frequency_gray * mask
-        
-        self.get_image_back(color_channels)
+            self.get_image_back(color_channels)
+            cv2.imwrite('sharp_gray.jpeg', self.filtered_image_gray)
+            cv2.imwrite('sharp_freq_gray.jpeg', self.filtered_magnitude_spectrum_gray)
+            cv2.imwrite('image4_freq_gray.jpeg',self.magnitude_spectrum_gray)
 
 
     # Blurring with Low Pass Filter
@@ -187,34 +214,49 @@ class ImageProcessing:
         if len(color_channels):
             for channel in color_channels: 
                 self.filtered_image_frequency_RGB.append(self.image_frequency_RGB[channel] * mask)
+            self.get_image_back(color_channels)
+            cv2.imwrite('blur_RGB.jpeg', cv2.cvtColor(self.filtered_image_RGB,cv2.COLOR_RGB2BGR))
+            cv2.imwrite('blur_freq_RGB.png', self.filtered_magnitude_spectrum_RGB[0])
         else:
             self.filtered_image_frequency_gray = self.image_frequency_gray * mask
-
-        self.get_image_back(color_channels)
+            self.get_image_back(color_channels)
+            cv2.imwrite('blur_gray.jpeg', self.filtered_image_gray)
+            cv2.imwrite('blur_freq_gray.jpeg', self.filtered_magnitude_spectrum_gray)
+            cv2.imwrite('image4_freq_gray.jpeg',self.magnitude_spectrum_gray)
 
     # Edge Detection with High Pass Filter
     def edge_detection(self, color_channels):
         # Circular HPF mask, center circle is 0, remaining all ones
-        mask = self.define_circular_mask(self.ccol/20, 0.0001, 0)
+        mask = self.define_circular_mask(30, 0.00000001, 0)
         if len(color_channels):
             for channel in color_channels: 
                 self.filtered_image_frequency_RGB.append(self.image_frequency_RGB[channel] * mask)
+            self.get_image_back(color_channels)
+            cv2.imwrite('edge_RGB.jpeg', cv2.cvtColor(self.filtered_image_RGB,cv2.COLOR_RGB2BGR))
+            cv2.imwrite('edge_freq_RGB.jpeg', self.filtered_magnitude_spectrum_RGB[0])
+            cv2.imwrite('image4_freq_gray.jpeg',self.magnitude_spectrum_gray)
+            cv2.imwrite('image4_gray.jpeg', self.image_gray)
         else:
             self.filtered_image_frequency_gray = self.image_frequency_gray * mask
-        
-        self.get_image_back(color_channels)
+            self.get_image_back(color_channels)
+            cv2.imwrite('edge_gray.jpeg', self.filtered_image_gray)
+            cv2.imwrite('edge_freq_gray.jpeg', self.filtered_magnitude_spectrum_gray)
 
     # noise filtering with Low Pass Filter
     def noise_filtering(self, color_channels):
         # Circular HPF mask, center circle is 0, remaining all ones
-        mask = self.define_circular_mask(self.ccol/2, 0.00001, 1)
+        mask = self.define_circular_mask(50, 0.0000001, 1)
         if len(color_channels):
             for channel in color_channels: 
                 self.filtered_image_frequency_RGB.append(self.image_frequency_RGB[channel] * mask)
+            self.get_image_back(color_channels)
+            cv2.imwrite('noise_RGB.jpeg', cv2.cvtColor(self.filtered_image_RGB,cv2.COLOR_RGB2BGR))
+            cv2.imwrite('noise_freq_RGB.jpeg', self.filtered_magnitude_spectrum_RGB[0])
         else:
             self.filtered_image_frequency_gray = self.image_frequency_gray * mask
-        
-        self.get_image_back(color_channels)
+            self.get_image_back(color_channels)
+            cv2.imwrite('noise_gray.jpeg', self.filtered_image_gray)
+            cv2.imwrite('noise_freq_gray.jpeg', self.filtered_magnitude_spectrum_gray)
         
         
 
