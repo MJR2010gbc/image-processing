@@ -178,11 +178,27 @@ def main():
     root.config(background = "white", padx=5, pady=5)
 
 ##############################################################################################################################################
+    global general_controls_area
+    general_controls_area = tk.Frame(root, bg='gray95')
+    general_controls_area.config(highlightcolor='black', highlightbackground='black', highlightthickness=1)
+    general_controls_area.pack(side='top', fill="x", pady=(10,0))
+    # Create button to start the File Explorer
+    button_explore = tk.Button(general_controls_area, text = "Select image...", height=2, width=15, command = browseFiles, fg='#000')  
+    button_explore.pack(side='left', fill='none', expand=False, padx=25)
+    # Create a File Explorer label and set it's parameters
+    global label_file_explorer 
+    label_file_explorer= tk.Label(general_controls_area, text = f"No file selected", height = 5, fg = "black", bg='gray95')
+    label_file_explorer.pack(side='left', fill='x', pady=5, padx=2)
+    # Create button for closing the program
+    button_exit = tk.Button(general_controls_area, text = "Exit", height=2, width=10, command = exit, fg='#000')
+    button_exit.pack(side='right', fill='none', expand=False, padx=25)
+
+##############################################################################################################################################
     # create and position frame containing images and filter controls
     global frame
     frame = tk.Frame(root, bg='gray95')
     frame.config(highlightcolor='black', highlightbackground='black', highlightthickness=1)
-    frame.pack(expand=True, side='top', fill="both")
+    frame.pack(side='bottom', expand=True, fill="both",pady=(0, 10))
     
     ##########################################################################################################################################
     # create and position the area containing the images
@@ -192,7 +208,7 @@ def main():
     images_area.pack(side='left', fill='both', expand=True)
     # set up and placement of the label that will contain original image
     global og_img_label
-    og_img_label = tk.Label(images_area, bg='gray95', text='Original image will appear here', borderwidth=1, relief='solid')
+    og_img_label = tk.Label(images_area, bg='gray95', text='Original image will appear here', borderwidth=1, relief='solid', fg='#000')
     og_img_label.place(rely=.02, relx=0.02, relheight=.45, relwidth=.45)
     # set up and place of arrow from original image to it's spectrum 
     arrow1 = tk.Canvas(images_area, bg='gray95',width=50, height=20, border=0)
@@ -200,7 +216,7 @@ def main():
     arrow1.place(rely=.22, relx=.48)
     # set up and placement of the label that will contain original image magnitude spectrum
     global og_img_spec_label
-    og_img_spec_label = tk.Label(images_area, bg='gray95', text='Original image spectrum will appear here', borderwidth=1, relief='solid')
+    og_img_spec_label = tk.Label(images_area, bg='gray95', text='Original image spectrum will appear here', borderwidth=1, relief='solid', fg='#000')
     og_img_spec_label.place(rely=.02, relx=0.53, relheight=.45, relwidth=.45)
     # set up and place of arrow from original spectrum to modified spectrum 
     arrow2 = tk.Canvas(images_area, bg='gray95', width=20, height=50, border=0)
@@ -208,7 +224,7 @@ def main():
     arrow2.place(relx=.76, rely=.47)
     # set up and placement of the label that will contain modified image magnitude spectrum
     global mod_img_label
-    mod_img_label = tk.Label(images_area, bg='gray95', text='Modified image will appear here', borderwidth=1, relief='solid')
+    mod_img_label = tk.Label(images_area, bg='gray95', text='Modified image will appear here', borderwidth=1, relief='solid', fg='#000')
     mod_img_label.place(rely=.53, relx=0.02, relheight=.45, relwidth=.45)
     # set up and place of arrow from modified spectrum to modified image 
     arrow3 = tk.Canvas(images_area, bg='gray95', width=50, height=20, border=0)
@@ -216,7 +232,7 @@ def main():
     arrow3.place(relx=.48, rely=.76)
     # set up and placement of the label that will contain modified image 
     global mod_img_spec_label
-    mod_img_spec_label = tk.Label(images_area, bg='gray95', text='Modified image spectrum will appear here', borderwidth=1, relief='solid')
+    mod_img_spec_label = tk.Label(images_area, bg='gray95', text='Modified image spectrum will appear here', borderwidth=1, relief='solid', fg='#000')
     mod_img_spec_label.place(rely=.53, relx=0.53, relheight=.45, relwidth=.45)
     
     ##########################################################################################################################################
@@ -239,46 +255,32 @@ def main():
     # actual dropdown element
     global dropdown
     dropdown = tk.OptionMenu(controls_area, selected, *color_options)
-    dropdown.config(width=25)
+    dropdown.config(width=25, fg='#000')
     dropdown.pack(side='top', fill='x', padx=15, pady=50)
     # Radio buttons
     # variable containing the radio button selection 
     global var_filter
     var_filter = tk.IntVar()
-    # actula radio button element
-    R1 = tk.Radiobutton(controls_area, text="HPF", variable=var_filter, value=0)
+    # actual radio button element
+    R1 = tk.Radiobutton(controls_area, text="HPF", variable=var_filter, value=0, fg='#000')
     R1.pack(side='top', fill='x', padx=15, pady=(50,10))
-    R2 = tk.Radiobutton(controls_area, text="LPF", variable=var_filter, value=1)
+    R2 = tk.Radiobutton(controls_area, text="LPF", variable=var_filter, value=1, fg='#000')
     R2.pack(side='top', fill='x', padx=15, pady=(10,50))
     # Slider radius
     global sli_radius, sli_intensity
-    sli_radius = tk.Scale(controls_area, from_=0, to=100, orient=tk.HORIZONTAL, label='Radius of filter (% of image width)', tickinterval=10)
+    sli_radius = tk.Scale(controls_area, from_=0, to=100, orient=tk.HORIZONTAL, label='Radius of filter (% of image width)', tickinterval=10, fg='#000')
     sli_radius.pack(side='top', fill='x', padx=15, pady=50)
     # Slider intensity
     label_text = f"Dampening intensity (% of image width)"
-    sli_intensity = tk.Scale(controls_area, from_=0, to=99.9, orient=tk.HORIZONTAL, label=label_text, tickinterval=10)
+    sli_intensity = tk.Scale(controls_area, from_=0, to=99.9, orient=tk.HORIZONTAL, label=label_text, tickinterval=10, fg='#000')
     sli_intensity.pack(side='top', fill='x', padx=15, pady=50)
     # Button to apply filter
     global button_filter
-    button_filter = tk.Button(controls_area, text = "Filter", height=2, width=15, command = apply_filter)  
+    button_filter = tk.Button(controls_area, text = "Filter", height=2, width=15, command = apply_filter, fg='#000')  
     button_filter['state'] = 'disabled'
     button_filter.pack(side='bottom', fill='x', padx=15, pady=50)
 
-##############################################################################################################################################
-    global general_controls_area
-    general_controls_area = tk.Frame(root, bg='gray95')
-    general_controls_area.config(highlightcolor='black', highlightbackground='black', highlightthickness=1)
-    general_controls_area.pack(side='bottom', expand=True, fill="x")
-    # Create button to start the File Explorer
-    button_explore = tk.Button(general_controls_area, text = "Select image...", height=2, width=15, command = browseFiles)  
-    button_explore.pack(side='left', fill='none', expand=False, padx=25)
-    # Create a File Explorer label and set it's parameters
-    global label_file_explorer 
-    label_file_explorer= tk.Label(general_controls_area, text = f"No file selected", height = 5, fg = "black", bg='gray95')
-    label_file_explorer.pack(side='left', fill='x', pady=5, padx=2)
-    # Create button for closing the program
-    button_exit = tk.Button(general_controls_area, text = "Exit", height=2, width=10, command = exit)
-    button_exit.pack(side='right', fill='none', expand=False, padx=25)
+
 
     # Let the window wait for any events
     root.mainloop()
