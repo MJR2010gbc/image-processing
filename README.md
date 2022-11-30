@@ -4,7 +4,8 @@ This repo is for a group project for A.I. Development Solutions at George Brown 
 ImageProcessinging.py,
 main.py
 <br> Includes applying Fourier Transforms to an image in order to apply different filters via masks on the transformed images.
-<br> GUI developed to allow quasi-real time images enanchements
+<br> GUI developed to allow quasi-realtime images enanchements
+<br> to run the guy run main.py
 <br> Dataset includes a small collection of personal images taken with our cameras
 
 ## Part 2:
