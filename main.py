@@ -263,22 +263,22 @@ def main():
     var_filter = tk.IntVar()
     # actual radio button element
     R1 = tk.Radiobutton(controls_area, text="HPF", variable=var_filter, value=0, fg='#000')
-    R1.pack(side='top', fill='x', padx=15, pady=(50,10))
+    R1.pack(side='top', fill='x', padx=15, pady=(20,10))
     R2 = tk.Radiobutton(controls_area, text="LPF", variable=var_filter, value=1, fg='#000')
-    R2.pack(side='top', fill='x', padx=15, pady=(10,50))
+    R2.pack(side='top', fill='x', padx=15, pady=(10,20))
     # Slider radius
     global sli_radius, sli_intensity
     sli_radius = tk.Scale(controls_area, from_=0, to=100, orient=tk.HORIZONTAL, label='Radius of filter (% of image width)', tickinterval=10, fg='#000')
-    sli_radius.pack(side='top', fill='x', padx=15, pady=50)
+    sli_radius.pack(side='top', fill='x', padx=15, pady=20)
     # Slider intensity
     label_text = f"Dampening intensity (% of image width)"
     sli_intensity = tk.Scale(controls_area, from_=0, to=99.9, orient=tk.HORIZONTAL, label=label_text, tickinterval=10, fg='#000')
-    sli_intensity.pack(side='top', fill='x', padx=15, pady=50)
+    sli_intensity.pack(side='top', fill='x', padx=15, pady=20)
     # Button to apply filter
     global button_filter
     button_filter = tk.Button(controls_area, text = "Filter", height=2, width=15, command = apply_filter, fg='#000')  
     button_filter['state'] = 'disabled'
-    button_filter.pack(side='bottom', fill='x', padx=15, pady=50)
+    button_filter.pack(side='bottom', fill='x', padx=15, pady=(30,10))
 
 
 
