@@ -1,14 +1,16 @@
 This repo is for a group project for A.I. Development Solutions at George Brown College.
 ## Part 1:
 
-imagefiltering.py
+ImageFiltering.py
+main.py
 <br> Includes applying Fourier Transforms to an image in order to apply different filters via masks on the transformed images.
-<br> Dataset includes a small collection of personal images taken with our cameras or generated with Dalle
+<br> GUI developed to allow quasi-real time images enanchements
+<br> Dataset includes a small collection of personal images taken with our cameras
 
 ## Part 2:
 
-imageclassification.py & datasetpreprocessing.py
-<br> Classifying buildings vs forests using Logistic Regression, Random Forest
+Image_Classification.ipynb
+<br> Classifying buildings vs forests using Logistic Regression, Random Forest, SVM, KNN and DT
 <br> Original dataset available here: https://www.kaggle.com/datasets/puneet6060/intel-image-classification?resource=download
 
 ##
